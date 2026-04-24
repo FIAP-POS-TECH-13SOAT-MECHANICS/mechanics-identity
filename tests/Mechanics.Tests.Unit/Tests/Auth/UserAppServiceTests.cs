@@ -1,14 +1,16 @@
 ﻿using AutoMapper;
+using Mechanics.Application.Auth.Consumers;
 using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;
-using Mechanics.Application.Customers.Requests;
 using Mechanics.Application.Notification.Services;
 using Mechanics.Application.Utils.CommonResponses;
 using Mechanics.Domain.Auth;
 using Mechanics.Infra.Data.Seeds;
+using Mechanics.Infra.Security.Models;
 using Mechanics.Tests.Unit.Helpers;
 using Mechanics.Tests.Unit.Mocks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Mechanics.Tests.Unit.Tests.Auth;
@@ -60,23 +62,26 @@ public class UserAppServiceTests
             .WithData(ctx => ctx.Roles.Add(customerUserRole))
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
-        var individualRequest = new CreateIndividualCustomerRequest
+        var service = new UserAppService(context, _mapper, _mailService);
+        var logger = Mock.Of<ILogger<CustomerCreatedConsumer>>();
+        var consumer = new CustomerCreatedConsumer(logger, service);
+
+        var @event = new CustomerCreatedEvent
         {
+            CustomerId = customerId,
             FullName = "Joao Cliente",
             Email = "joao@cliente.com",
             CpfNumber = "341.041.040-60",
+            RoleId = customerUserRole.Id,
+            RoleName = customerUserRole.Name,
         };
-        var request = new CreateUserForCustomerRequest(customerId, individualRequest);
 
         // Act
-        var response = await handler.Create(request, TestContext.CancellationTokenSource.Token);
+        await consumer.ConsumeAsync(@event, TestContext.CancellationTokenSource.Token);
 
         // Assert
-        Assert.IsNotNull(response);
-        Assert.AreNotEqual(Guid.Empty, response.CreatedId);
         var created = await context.Users.AsNoTracking()
-            .FirstAsync(u => u.Id == response.CreatedId, TestContext.CancellationTokenSource.Token);
+            .FirstAsync(u => u.CustomerId == customerId, TestContext.CancellationTokenSource.Token);
         Assert.AreEqual(customerId, created.CustomerId);
         Assert.AreEqual(customerUserRole.Id, created.RoleId);
         Assert.AreEqual("JOAO CLIENTE", created.FullName);

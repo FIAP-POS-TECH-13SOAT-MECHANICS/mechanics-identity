@@ -9,6 +9,8 @@ namespace Mechanics.Tests.Integration.Tests.Notification;
 [TestCategory("Notification")]
 public class ResetPasswordTest(TestContext testContext)
 {
+    private static readonly HttpClient Client = new() { BaseAddress = TestProperties.GetEmailClientUri() };
+
     [TestMethod("Deve enviar e-mail de recuperação de senha")]
     public async Task It_ShouldSendPasswordResetEmail()
     {
@@ -16,7 +18,7 @@ public class ResetPasswordTest(TestContext testContext)
         var emailsCount = await GetEmailsCount(testContext.CancellationTokenSource.Token);
 
         var request = new ResetPasswordRequest { CpfNumber = "12345678909" };
-        var response = await client.PostAsJsonAsync("api/auth/reset-password", request, testContext.CancellationTokenSource.Token);
+        var response = await client.PostAsJsonAsync("identity/auth/reset-password", request, testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         Assert.IsGreaterThan(emailsCount, await GetEmailsCount(testContext.CancellationTokenSource.Token));
@@ -24,9 +26,7 @@ public class ResetPasswordTest(TestContext testContext)
 
     private static async Task<int> GetEmailsCount(CancellationToken cancellationToken)
     {
-        var client = new HttpClient { BaseAddress = TestProperties.GetEmailClientUri() };
-
-        var response = await client.GetAsync("api/v1/info", cancellationToken);
+        var response = await Client.GetAsync("api/v1/info", cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return (await response.Content.ReadFromJsonAsync<EmailClientInfoResponse>(cancellationToken: cancellationToken))!.Messages;

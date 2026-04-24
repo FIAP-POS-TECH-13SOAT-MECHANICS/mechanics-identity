@@ -1,12 +1,13 @@
-﻿name: mechanics-:SERVICE_NAME
+﻿name: mechanics-identity
 
 services:
   dotnet:
     build: .
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=mssql;Database=mechanics-:SERVICE_NAME;User Id=sa;Password=2%r6dZ6Xk@g3;TrustServerCertificate=True;
+      - ConnectionStrings__Default=Server=mssql;Database=mechanics-identity;User Id=sa;Password=2%r6dZ6Xk@g3;TrustServerCertificate=True;
       - EmailSenderOptions__SmtpServer=mailpit
+      - AwsCredentials__LocalstackUrl=http://localstack:4566
     ports:
       - "5000:8080"
     volumes:
@@ -16,6 +17,8 @@ services:
       mssql:
         condition: service_healthy
       mailpit:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
 
   mssql:
@@ -55,10 +58,24 @@ services:
       timeout: 5s
       retries: 10
 
+  localstack:
+    image: localstack/localstack:3
+    environment:
+      - SERVICES=sqs
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
+    healthcheck:
+      test: 'curl -f http://localhost:4566/_localstack/health'
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
 volumes:
   dotnet:
-    name: mechanics-:SERVICE_NAME-dotnet
+    name: mechanics-identity-dotnet
   mssql:
-    name: mechanics-:SERVICE_NAME-mssql
+    name: mechanics-identity-mssql
   mailpit:
-    name: mechanics-:SERVICE_NAME-mailpit
+    name: mechanics-identity-mailpit

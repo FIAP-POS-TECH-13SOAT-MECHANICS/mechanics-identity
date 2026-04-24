@@ -1,6 +1,5 @@
 ﻿using Mechanics.Domain.Base;
 using Mechanics.Domain.Base.Validation;
-using Mechanics.Domain.Customers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,7 +15,6 @@ public class User : AbstractEntity, INormalizable, IValidatable
     public required string PasswordHash { get; set; }
     public required string SecurityStamp { get; set; }
     public Guid? CustomerId { get; init; }
-    public Customer? Customer { get; init; }
 
     public bool IsNormalized() =>
         FullName.IsTrimmedUpperCase() &&

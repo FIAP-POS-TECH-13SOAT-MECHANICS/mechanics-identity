@@ -24,8 +24,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasOne(entity => entity.Role).WithMany().OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(entity => entity.Customer).WithMany().OnDelete(DeleteBehavior.NoAction);
-
         builder.HasData(UserSeeds.GetSeeds());
     }
 }

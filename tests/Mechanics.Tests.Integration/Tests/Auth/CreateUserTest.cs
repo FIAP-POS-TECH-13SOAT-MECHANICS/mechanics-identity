@@ -1,5 +1,6 @@
 ﻿using Mechanics.Application.Auth.Requests;
 using Mechanics.Domain.Auth;
+using Mechanics.Infra.Security.Models;
 using Mechanics.Tests.Integration.Helpers;
 using System.Net;
 using System.Net.Http.Json;
@@ -25,7 +26,7 @@ public class CreateUserTest(TestContext testContext)
             RoleId = new Guid("f2d59afa-6e85-4557-8ff1-733343ba83f8"),
         };
 
-        var response = await client.PostAsJsonAsync("api/auth/users", request,
+        var response = await client.PostAsJsonAsync("identity/auth/users", request,
             testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
@@ -45,7 +46,7 @@ public class CreateUserTest(TestContext testContext)
             RoleId = new Guid("2afde195-550b-498e-a63d-7a6d556b25ba"),
         };
 
-        var response = await client.PostAsJsonAsync("api/auth/users", request,
+        var response = await client.PostAsJsonAsync("identity/auth/users", request,
             testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
