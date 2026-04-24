@@ -1,5 +1,5 @@
 app:
-  name: mechanics-identity
+  name: identity
   project: fiap-mechanics
   version: 1.0.0
   env: dev
