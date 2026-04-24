@@ -13,7 +13,7 @@ public class HealthCheckTest(TestContext testContext)
         var factory = TestProperties.Factory;
         var client = factory.CreateClient();
 
-        var response = await client.GetAsync("/health", testContext.CancellationTokenSource.Token);
+        var response = await client.GetAsync("health", testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
     }

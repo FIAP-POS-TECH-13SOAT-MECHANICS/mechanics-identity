@@ -7,5 +7,5 @@ public class HealthCheckDriver
     private readonly HttpClient _client = ApiHook.Factory.CreateClient();
 
     public async Task<HttpResponseMessage> GetHealthAsync()
-        => await _client.GetAsync("/api/health");
+        => await _client.GetAsync("/health");
 }

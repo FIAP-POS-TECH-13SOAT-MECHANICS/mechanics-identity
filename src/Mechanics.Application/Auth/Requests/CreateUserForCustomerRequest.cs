@@ -1,7 +1,4 @@
 ﻿using Mechanics.Application.Auth.Consumers;
-using Mechanics.Application.Customers.Requests;
-using Mechanics.Domain.Auth;
-using Mechanics.Infra.Data.Seeds;
 using System.ComponentModel.DataAnnotations;
 
 namespace Mechanics.Application.Auth.Requests;
@@ -34,15 +31,6 @@ public class CreateUserForCustomerRequest
     /// </summary>
     /// <remarks>Deve ser um perfil válido para clientes.</remarks>
     public Guid RoleId { get; }
-
-    public CreateUserForCustomerRequest(Guid customerId, CreateIndividualCustomerRequest request)
-    {
-        FullName = request.FullName;
-        CpfNumber = request.CpfNumber;
-        Email = request.Email;
-        CustomerId = customerId;
-        RoleId = RoleSeeds.GetSeeds().First(r => r.Name == RoleNames.CustomerUser).Id;
-    }
 
     public CreateUserForCustomerRequest(CustomerCreatedEvent message)
     {

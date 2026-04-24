@@ -1,6 +1,6 @@
-# SERVICE_NAME
+# Identity
 
-Breve descrição do serviço.
+Gestão de usuários e permissões.
 
 ## Definição do ambiente
 
@@ -58,11 +58,8 @@ docker compose up -d --build
 
 Após o processo concluir, o projeto estará disponível nas seguintes URLs:
 
-- Swagger do projeto: <http://localhost:5000/api/swagger>
+- Swagger do projeto: <http://localhost:5000/identity/swagger>
 - Cliente de e-mail: <http://localhost:8025>
-
-> **Opcional**
-> Utilize o script [dev-seeds](./dev-seeds/README.md) para popular o banco com dados de exemplo.
 
 Utilize o script `invoke-getToken.ps1` para obter um token de acesso. É necessário que o serviço [Mechanics.Auth](https://github.com/FIAP-POS-TECH-13SOAT-MECHANICS/mechanics-auth) já esteja em execução.
 

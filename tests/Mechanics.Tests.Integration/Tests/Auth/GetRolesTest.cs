@@ -1,5 +1,6 @@
 ﻿using Mechanics.Application.Auth.Responses;
 using Mechanics.Domain.Auth;
+using Mechanics.Infra.Security.Models;
 using Mechanics.Tests.Integration.Helpers;
 using System.Net;
 using System.Net.Http.Json;
@@ -17,7 +18,7 @@ public class GetRolesTest(TestContext testContext)
         var factory = TestProperties.Factory;
         var client = factory.GetAuthenticatedClient(RoleNames.Administrator);
 
-        var response = await client.GetAsync("api/auth/roles", testContext.CancellationTokenSource.Token);
+        var response = await client.GetAsync("identity/auth/roles", testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         Assert.IsNotNull(response.Content);
@@ -32,7 +33,7 @@ public class GetRolesTest(TestContext testContext)
         var factory = TestProperties.Factory;
         var client = factory.GetAuthenticatedClient(RoleNames.Attendant);
 
-        var response = await client.GetAsync("api/auth/roles", testContext.CancellationTokenSource.Token);
+        var response = await client.GetAsync("identity/auth/roles", testContext.CancellationTokenSource.Token);
 
         Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
