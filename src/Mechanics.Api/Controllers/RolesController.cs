@@ -11,7 +11,7 @@ namespace Mechanics.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiExplorerSettings(GroupName = "v1")]
-[Route("auth/[controller]")]
+[Route("[controller]")]
 [Authorize(Roles = RoleNames.Administrator)]
 public class RolesController(RolesAppService service) : ControllerBase
 {

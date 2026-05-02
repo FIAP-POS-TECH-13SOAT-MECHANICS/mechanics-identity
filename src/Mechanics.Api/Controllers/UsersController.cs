@@ -13,8 +13,7 @@ namespace Mechanics.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiExplorerSettings(GroupName = "v1")]
-[Route("auth/[controller]")]
-[Authorize(Roles = RoleNames.Administrator)]
+[Route("[controller]")]
 public class UsersController(UserAppService service) : ControllerBase
 {
     /// <summary>
@@ -27,6 +26,7 @@ public class UsersController(UserAppService service) : ControllerBase
     [Produces("application/json", Type = typeof(CreateItemResponse))]
     [ProducesResponseType(typeof(CreateItemResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         var response = await service.Create(request, cancellationToken);
@@ -42,6 +42,7 @@ public class UsersController(UserAppService service) : ControllerBase
     [Produces("application/json", Type = typeof(GetUsersResponse))]
     [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest request, CancellationToken cancellationToken = default)
     {
         var response = await service.GetList(request, cancellationToken);
@@ -56,6 +57,7 @@ public class UsersController(UserAppService service) : ControllerBase
     [HttpGet("{id:guid}")]
     [Produces("application/json", Type = typeof(GetUserResponse))]
     [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+    [Authorize(Roles = $"{RoleNames.Administrator},{RoleNames.Service}")]
     public async Task<IActionResult> GetUser(Guid id, CancellationToken cancellationToken = default)
     {
         var response = await service.Get(id, cancellationToken);
@@ -75,6 +77,7 @@ public class UsersController(UserAppService service) : ControllerBase
     [Produces("application/json", Type = typeof(CreateItemResponse))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> UpdateUser(Guid id, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
         var response = await service.Update(id, request, cancellationToken);
