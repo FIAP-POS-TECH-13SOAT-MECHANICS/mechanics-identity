@@ -1,5 +1,5 @@
 param (
-    [ValidateSet('ADMINISTRATOR', 'ATTENDANT', 'MECHANIC', 'CUSTOMER_USER', 'CUSTOMER_ADMIN')]
+    [ValidateSet('ADMINISTRATOR', 'ATTENDANT', 'MECHANIC', 'CUSTOMER_USER', 'CUSTOMER_ADMIN', 'SERVICE')]
     [string]$Role,
     [string]$UserId,
     [string]$CustomerId
@@ -12,9 +12,10 @@ if (-not $Role) {
         New-Object System.Management.Automation.Host.ChoiceDescription "&Mechanic",      "Workshop mechanic"
         New-Object System.Management.Automation.Host.ChoiceDescription "Customer&User",  "Customer (standard)"
         New-Object System.Management.Automation.Host.ChoiceDescription "Customer&Admin", "Customer (admin)"
+        New-Object System.Management.Automation.Host.ChoiceDescription "&Service", "Service token"
     )
     $selectedIndex = $host.UI.PromptForChoice("Role selection", "Select the role for the token:", $options, 0)
-    $Role = @('ADMINISTRATOR', 'ATTENDANT', 'MECHANIC', 'CUSTOMER_USER', 'CUSTOMER_ADMIN')[$selectedIndex]
+    $Role = @('ADMINISTRATOR', 'ATTENDANT', 'MECHANIC', 'CUSTOMER_USER', 'CUSTOMER_ADMIN', 'SERVICE')[$selectedIndex]
 }
 
 if (-not $UserId)

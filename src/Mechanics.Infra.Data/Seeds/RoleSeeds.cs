@@ -12,5 +12,6 @@ public static class RoleSeeds
         new() { Id = new Guid("f6027484-89a4-49f6-a9cb-4d1733c2bab7"), Name = RoleNames.Mechanic },
         new() { Id = new Guid("f61b4ae9-cc8f-4fda-a39f-f70bb3c0840f"), Name = RoleNames.CustomerUser },
         new() { Id = new Guid("f31bca41-0895-4af5-976f-ac892f833b1b"), Name = RoleNames.CustomerAdmin },
+        new() { Id = new Guid("aaccfd08-66b2-473a-a0a1-2aa7fbbed7cc"), Name = RoleNames.Service },
     ];
 }
