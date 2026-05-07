@@ -72,8 +72,7 @@ public class UserAppServiceTests
             FullName = "Joao Cliente",
             Email = "joao@cliente.com",
             CpfNumber = "341.041.040-60",
-            RoleId = customerUserRole.Id,
-            RoleName = customerUserRole.Name,
+            IsAdmin = false,
         };
 
         // Act
