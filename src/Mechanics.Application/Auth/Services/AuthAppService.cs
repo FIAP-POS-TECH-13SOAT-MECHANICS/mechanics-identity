@@ -1,16 +1,18 @@
-﻿using Mechanics.Application.Auth.Requests;
+﻿using Mechanics.Application.Auth.Events;
+using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Notification.Services;
 using Mechanics.Application.Utils;
 using Mechanics.Application.Utils.CommonResponses;
 using Mechanics.Domain.Auth;
 using Mechanics.Domain.Base.Validation;
 using Mechanics.Infra.Data;
+using Mechanics.Infra.Messaging.Publishers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mechanics.Application.Auth.Services;
 
-public class AuthAppService(AppDbContext dbContext, IEmailService emailService) : IAppService
+public class AuthAppService(AppDbContext dbContext, IEventPublisher eventPublisher, IEmailService emailService) : IAppService
 {
     public async Task<UpdateItemResponse?> CreatePassword(CreatePasswordRequest request, CancellationToken cancellationToken)
     {
@@ -25,6 +27,9 @@ public class AuthAppService(AppDbContext dbContext, IEmailService emailService) 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await emailService.UserPasswordChanged(user, cancellationToken);
+
+        var message = new UserChangedEvent(user);
+        await eventPublisher.PublishAsync(message, cancellationToken);
 
         return new UpdateItemResponse { UpdatedItemId = user.Id };
     }
@@ -53,6 +58,9 @@ public class AuthAppService(AppDbContext dbContext, IEmailService emailService) 
         user.SecurityStamp = Guid.NewGuid().ToString();
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        var message = new UserChangedEvent(user);
+        await eventPublisher.PublishAsync(message, cancellationToken);
 
         await emailService.UserPasswordChanged(user, cancellationToken);
     }
