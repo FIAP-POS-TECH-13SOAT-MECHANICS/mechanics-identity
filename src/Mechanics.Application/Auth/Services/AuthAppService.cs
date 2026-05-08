@@ -26,10 +26,10 @@ public class AuthAppService(AppDbContext dbContext, IEventPublisher eventPublish
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await emailService.UserPasswordChanged(user, cancellationToken);
-
         var message = new UserChangedEvent(user);
         await eventPublisher.PublishAsync(message, cancellationToken);
+
+        await emailService.UserPasswordChanged(user, cancellationToken);
 
         return new UpdateItemResponse { UpdatedItemId = user.Id };
     }
