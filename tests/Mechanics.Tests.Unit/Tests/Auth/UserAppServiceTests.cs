@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Mechanics.Application.Auth.Consumers;
+using Mechanics.Application.Auth.Events;
 using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;
 using Mechanics.Application.Notification.Services;
 using Mechanics.Application.Utils.CommonResponses;
 using Mechanics.Domain.Auth;
 using Mechanics.Infra.Data.Seeds;
+using Mechanics.Infra.Messaging.Publishers;
 using Mechanics.Infra.Security.Models;
 using Mechanics.Tests.Unit.Helpers;
 using Mechanics.Tests.Unit.Mocks;
@@ -34,7 +36,7 @@ public class UserAppServiceTests
         await using var context = new DbContextTestBuilder()
             .WithData(ctx => ctx.Roles.Add(new Role { Id = roleId, Name = RoleNames.Administrator }))
             .Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = UserMocks.BuildCreateRequest(roleId);
 
         // Act
@@ -62,7 +64,7 @@ public class UserAppServiceTests
             .WithData(ctx => ctx.Roles.Add(customerUserRole))
             .Build();
 
-        var service = new UserAppService(context, _mapper, _mailService);
+        var service = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var logger = Mock.Of<ILogger<CustomerCreatedConsumer>>();
         var consumer = new CustomerCreatedConsumer(logger, service);
 
@@ -72,8 +74,7 @@ public class UserAppServiceTests
             FullName = "Joao Cliente",
             Email = "joao@cliente.com",
             CpfNumber = "341.041.040-60",
-            RoleId = customerUserRole.Id,
-            RoleName = customerUserRole.Name,
+            IsAdmin = false,
         };
 
         // Act
@@ -102,7 +103,7 @@ public class UserAppServiceTests
             .WithData(ctx => ctx.Users.Add(user))
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
 
         // Act
         var response = await handler.Get(userId, TestContext.CancellationTokenSource.Token);
@@ -121,7 +122,7 @@ public class UserAppServiceTests
     {
         // Arrange
         await using var context = new DbContextTestBuilder().Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var userId = Guid.NewGuid();
 
         // Act
@@ -144,7 +145,7 @@ public class UserAppServiceTests
             .WithData(ctx => ctx.Users.Add(user))
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
 
         // Act
         var response = await handler.GetByIdAndCustomerId(customerId, userId, TestContext.CancellationTokenSource.Token);
@@ -167,7 +168,7 @@ public class UserAppServiceTests
             .WithData(ctx => ctx.Users.Add(user))
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
 
         // Act
         var response = await handler.GetByIdAndCustomerId(customerId, userId, TestContext.CancellationTokenSource.Token);
@@ -190,7 +191,7 @@ public class UserAppServiceTests
             UserMocks.CreateUser(Guid.NewGuid(), "Jose Silva", "92969731045", RoleNames.Administrator),
         ];
         await using var context = new DbContextTestBuilder().WithData(users).Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = new GetUsersRequest { Page = 1, ItemsPerPage = 10 };
 
         // Act
@@ -214,7 +215,7 @@ public class UserAppServiceTests
             UserMocks.CreateUser(userId2, "Jose Silva", "16026321039", RoleNames.Administrator),
         ];
         await using var context = new DbContextTestBuilder().WithData(users).Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request1 = new GetUsersRequest { Page = 1, ItemsPerPage = 1 };
         var request2 = new GetUsersRequest { Page = 2, ItemsPerPage = 1 };
 
@@ -243,7 +244,7 @@ public class UserAppServiceTests
             UserMocks.CreateUser(Guid.NewGuid(), "Jose Silva", "61991950004", RoleNames.Administrator),
         ];
         await using var context = new DbContextTestBuilder().WithData(users).Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = new GetUsersRequest { Page = 1, ItemsPerPage = 10, Name = "joao" };
 
         // Act
@@ -271,7 +272,7 @@ public class UserAppServiceTests
             .WithData(new List<User> { user1, user2 })
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = new GetUsersRequest { Page = 1, ItemsPerPage = 10 };
 
         // Act
@@ -300,7 +301,8 @@ public class UserAppServiceTests
             })
             .Build();
         var userId = (await context.Users.FirstAsync(TestContext.CancellationTokenSource.Token)).Id;
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var eventPublisherMock = new Mock<IEventPublisher>();
+        var handler = new UserAppService(context, eventPublisherMock.Object, _mapper, _mailService);
         var request = UserMocks.BuildUpdateRequest(administratorRole.Id);
 
         var response = await handler.Update(userId, request, CancellationToken.None);
@@ -312,13 +314,14 @@ public class UserAppServiceTests
         Assert.AreEqual(user.FullName, updated.FullName);
         Assert.AreEqual(user.CpfNumber, updated.CpfNumber);
         Assert.AreEqual(administratorRole.Id, updated.RoleId);
+        eventPublisherMock.Verify(mock => mock.PublishAsync(It.IsAny<UserChangedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod("Retorna null quando o usuário não existe.")]
     public async Task It_ShouldReturnNull_WhenUserDoesNotExist()
     {
         await using var context = new DbContextTestBuilder().Build();
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = UserMocks.BuildUpdateRequest(new Guid("f2d59afa-6e85-4557-8ff1-733343ba83f8"));
 
         var response = await handler.Update(Guid.NewGuid(), request, TestContext.CancellationTokenSource.Token);
@@ -342,7 +345,7 @@ public class UserAppServiceTests
             .WithData(new List<User> { user })
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = new UpdateUserRequest
         {
             FullName = "User After",
@@ -355,7 +358,7 @@ public class UserAppServiceTests
 
         // Assert
         Assert.IsNotNull(response);
-        var updated = await context.Users.AsNoTracking().FirstAsync(u => u.Id == userId);
+        var updated = await context.Users.AsNoTracking().FirstAsync(u => u.Id == userId, TestContext.CancellationTokenSource.Token);
         Assert.AreEqual("USER AFTER", updated.FullName);
         Assert.AreEqual(customerUserRole.Id, updated.RoleId); // Role deve permanecer a mesma
     }
@@ -373,7 +376,7 @@ public class UserAppServiceTests
             .WithData(new List<User> { user })
             .Build();
 
-        var handler = new UserAppService(context, _mapper, _mailService);
+        var handler = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
         var request = new UpdateUserRequest { FullName = "User After" };
 
         // Act

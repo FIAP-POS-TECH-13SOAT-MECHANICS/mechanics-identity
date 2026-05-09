@@ -1,8 +1,10 @@
-﻿using Mechanics.Application.Auth.Requests;
+﻿using Mechanics.Application.Auth.Events;
+using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;
 using Mechanics.Application.Notification.Services;
 using Mechanics.Domain.Auth;
 using Mechanics.Domain.Base.Validation;
+using Mechanics.Infra.Messaging.Publishers;
 using Mechanics.Tests.Unit.Helpers;
 using Mechanics.Tests.Unit.Mocks;
 using Microsoft.AspNetCore.Identity;
@@ -15,7 +17,6 @@ namespace Mechanics.Tests.Unit.Tests.Auth;
 public class AuthAppServiceTests
 {
     public TestContext TestContext { get; set; }
-    private readonly IEmailService _mailService = Mock.Of<IEmailService>();
 
     #region recuperação de senha
 
@@ -31,7 +32,7 @@ public class AuthAppServiceTests
                 handler.SendUserPasswordCreationCode(user, user.GetPasswordCreationCode(),
                     TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Once());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var appService = new AuthAppService(context, new NullEventPublisher(), emailServiceStub.Object);
         var request = new ResetPasswordRequest { CpfNumber = "12345678909" };
 
         await appService.ResetPassword(request, TestContext.CancellationTokenSource.Token);
@@ -48,7 +49,7 @@ public class AuthAppServiceTests
                 handler.SendUserPasswordCreationCode(It.IsAny<User>(), It.IsAny<string>(),
                     TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Never());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var appService = new AuthAppService(context, new NullEventPublisher(), emailServiceStub.Object);
         var request = new ResetPasswordRequest { CpfNumber = "11144477735" };
 
         await appService.ResetPassword(request, TestContext.CancellationTokenSource.Token);
@@ -67,7 +68,8 @@ public class AuthAppServiceTests
         emailServiceStub.Setup(handler =>
                 handler.UserPasswordChanged(user, TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Once());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var eventPublisherMock = new Mock<IEventPublisher>();
+        var appService = new AuthAppService(context, eventPublisherMock.Object, emailServiceStub.Object);
         var request = new CreatePasswordRequest
         {
             CpfNumber = "12345678909",
@@ -83,6 +85,7 @@ public class AuthAppServiceTests
         Assert.AreNotEqual(user.PasswordHash, updatedItem.PasswordHash);
         Assert.AreNotEqual(user.SecurityStamp, updatedItem.SecurityStamp);
         emailServiceStub.Verify();
+        eventPublisherMock.Verify(mock => mock.PublishAsync(It.IsAny<UserChangedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod("Deve manter a senha atual se o código for inválido")]
@@ -96,7 +99,7 @@ public class AuthAppServiceTests
         emailServiceStub.Setup(handler =>
                 handler.UserPasswordChanged(user, TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Never());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var appService = new AuthAppService(context, new NullEventPublisher(), emailServiceStub.Object);
         var request = new CreatePasswordRequest
         {
             CpfNumber = "12345678909",
@@ -129,7 +132,8 @@ public class AuthAppServiceTests
         emailServiceStub.Setup(handler =>
                 handler.UserPasswordChanged(user, TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Once());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var eventPublisherMock = new Mock<IEventPublisher>();
+        var appService = new AuthAppService(context, eventPublisherMock.Object, emailServiceStub.Object);
         var request = new ChangePasswordRequest
         {
             CurrentPassword = "TEST_5eCre+Key1",
@@ -145,6 +149,7 @@ public class AuthAppServiceTests
             new PasswordHasher<User>().VerifyHashedPassword(updatedItem, updatedItem.PasswordHash, request.NewPassword));
         Assert.AreNotEqual(user.SecurityStamp, updatedItem.SecurityStamp);
         emailServiceStub.Verify();
+        eventPublisherMock.Verify(mock => mock.PublishAsync(It.IsAny<UserChangedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod("Deve lançar exceção se a senha atual estiver incorreta")]
@@ -158,7 +163,7 @@ public class AuthAppServiceTests
         emailServiceStub.Setup(handler =>
                 handler.UserPasswordChanged(user, TestContext.CancellationTokenSource.Token))
             .Verifiable(Times.Never());
-        var appService = new AuthAppService(context, emailServiceStub.Object);
+        var appService = new AuthAppService(context, new NullEventPublisher(), emailServiceStub.Object);
         var request = new ChangePasswordRequest
         {
             CurrentPassword = "TEST_5eCre+Key0",

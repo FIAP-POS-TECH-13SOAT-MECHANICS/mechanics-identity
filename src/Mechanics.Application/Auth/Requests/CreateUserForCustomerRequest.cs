@@ -1,4 +1,6 @@
 ﻿using Mechanics.Application.Auth.Consumers;
+using Mechanics.Infra.Data.Seeds;
+using Mechanics.Infra.Security.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace Mechanics.Application.Auth.Requests;
@@ -38,6 +40,8 @@ public class CreateUserForCustomerRequest
         CpfNumber = message.CpfNumber;
         Email = message.Email;
         CustomerId = message.CustomerId;
-        RoleId = message.RoleId;
+        RoleId = message.IsAdmin
+            ? RoleSeeds.GetSeeds().First(role => role.Name == RoleNames.CustomerAdmin).Id
+            : RoleSeeds.GetSeeds().First(role => role.Name == RoleNames.CustomerUser).Id;
     }
 }

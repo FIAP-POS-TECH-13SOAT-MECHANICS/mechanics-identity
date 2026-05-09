@@ -9,6 +9,28 @@ Gestão de usuários e permissões.
 - Serviço de E-mail: MailPit
 - Chave pública para JWT: AWS Secrets Manager
 
+## Messageria
+
+As filas devem ser criadas pela camada `messaging` do [repositório de infraestrutura](https://github.com/FIAP-POS-TECH-13SOAT-MECHANICS/mechanics-infra).
+
+### Consumers
+
+| Fila                                  | Descrição                                                                                                                                              |
+|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mechanics-{env}-customer-created`    | Cria uma conta de acesso para clientes cadastrados pelo serviço [WorkOrders](https://github.com/FIAP-POS-TECH-13SOAT-MECHANICS/mechanics-work-orders). |
+
+### Publishers
+
+| Fila                              | Descrição                                           |
+|-----------------------------------|-----------------------------------------------------|
+| `mechanics-{env}-user-changed`    | Publicado quando um usuário é alterado (ver abaixo) |
+
+#### Ações que publicam na `user-changed`
+
+- Criar ou redefinir uma senha via `POST /auth/create-password`
+- Alterar a senha via `/auth/change-password`
+- Atualizar o registro (nome ou role) via `PUT /users/{id}`
+
 ## Execução do projeto
 
 Em cada nova fase do projeto, é recomendável apagar os volumes do Docker para evitar conflitos com a estrutura do banco
