@@ -89,6 +89,60 @@ public class UserAppServiceTests
         Assert.AreEqual("JOAO CLIENTE", created.FullName);
     }
 
+    [TestMethod("Cria usuários com roles corretas baseadas na propriedade IsAdmin.")]
+    public async Task It_ShouldCreateUserWithCorrectRole_BasedOnIsAdminProperty()
+    {
+        // Arrange
+        var customerAdminRole = RoleSeeds.GetSeeds().First(r => r.Name == RoleNames.CustomerAdmin);
+        var customerUserRole = RoleSeeds.GetSeeds().First(r => r.Name == RoleNames.CustomerUser);
+
+        await using var context = new DbContextTestBuilder()
+            .WithData(ctx =>
+            {
+                ctx.Roles.Add(customerAdminRole);
+                ctx.Roles.Add(customerUserRole);
+            })
+            .Build();
+
+        var service = new UserAppService(context, new NullEventPublisher(), _mapper, _mailService);
+        var logger = Mock.Of<ILogger<CustomerCreatedConsumer>>();
+        var consumer = new CustomerCreatedConsumer(logger, service);
+
+        var adminCustomerId = Guid.NewGuid();
+        var userCustomerId = Guid.NewGuid();
+
+        var adminEvent = new CustomerCreatedEvent
+        {
+            CustomerId = adminCustomerId,
+            FullName = "Admin Cliente",
+            Email = "admin@cliente.com",
+            CpfNumber = "341.041.040-60",
+            IsAdmin = true,
+        };
+
+        var userEvent = new CustomerCreatedEvent
+        {
+            CustomerId = userCustomerId,
+            FullName = "User Cliente",
+            Email = "user@cliente.com",
+            CpfNumber = "585.522.150-47",
+            IsAdmin = false,
+        };
+
+        // Act
+        await consumer.ConsumeAsync(adminEvent, TestContext.CancellationTokenSource.Token);
+        await consumer.ConsumeAsync(userEvent, TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var createdAdmin = await context.Users.AsNoTracking()
+            .FirstAsync(u => u.CustomerId == adminCustomerId, TestContext.CancellationTokenSource.Token);
+        var createdUser = await context.Users.AsNoTracking()
+            .FirstAsync(u => u.CustomerId == userCustomerId, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(customerAdminRole.Id, createdAdmin.RoleId, "O usuário Admin deveria ter a role CustomerAdmin.");
+        Assert.AreEqual(customerUserRole.Id, createdUser.RoleId, "O usuário comum deveria ter a role CustomerUser.");
+    }
+
     #endregion
 
     #region buscar usuário
