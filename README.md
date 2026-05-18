@@ -9,6 +9,17 @@ Gestão de usuários e permissões.
 - Serviço de E-mail: MailPit
 - Chave pública para JWT: AWS Secrets Manager
 
+```mermaid
+graph TD
+    GW[API Gateway] -->|HTTP| ID[Identity Service]
+
+    CC[SQS: customer-created] -->|consumido por| ID
+    ID -->|publica| UC[SQS: user-changed]
+
+    ID -->|persiste| DB[(RDS: MS SQL Server)]
+    ID -->|envia e-mail| MP[MailPit]
+```
+
 ## Messageria
 
 As filas devem ser criadas pela camada `messaging` do [repositório de infraestrutura](https://github.com/FIAP-POS-TECH-13SOAT-MECHANICS/mechanics-infra).
