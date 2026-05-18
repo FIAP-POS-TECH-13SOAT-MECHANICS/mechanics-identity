@@ -18,6 +18,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
     private readonly RSA _rsa = RSA.Create();
 
     public Mock<IEventPublisher> EventPublisherMock { get; } = new();
+    public Mock<IEmailSenderService> EmailSenderMock { get; } = new();
 
     public HttpClient GetAuthenticatedClient(string roleName)
     {
@@ -47,7 +48,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         {
             services.UseInMemoryDbContext("mechanics-behavior")
                 .UseMockedMessaging(EventPublisherMock)
-                .UseMockedEmailSender();
+                .UseMockedEmailSender(EmailSenderMock);
         });
 
         Environment.SetEnvironmentVariable("Datadog__OtlpEndpoint", "http://localhost");
@@ -90,12 +91,12 @@ internal static class Extensions
         return services;
     }
 
-    public static IServiceCollection UseMockedEmailSender(this IServiceCollection services)
+    public static IServiceCollection UseMockedEmailSender(this IServiceCollection services, Mock<IEmailSenderService> emailSenderMock)
     {
         var descriptor = services.SingleOrDefault(service => service.ServiceType == typeof(IEmailSenderService));
         if (descriptor is not null)
             services.Remove(descriptor);
-        services.AddSingleton(new Mock<IEmailSenderService>().Object);
+        services.AddSingleton(emailSenderMock.Object);
 
         return services;
     }

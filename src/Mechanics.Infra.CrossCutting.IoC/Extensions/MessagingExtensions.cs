@@ -1,4 +1,5 @@
 ﻿using Mechanics.Application.Auth.Consumers;
+using Mechanics.Application.Auth.Event;
 using Mechanics.Infra.Messaging.Extensions;
 using Mechanics.Infra.Messaging.Options;
 using Microsoft.Extensions.Configuration;

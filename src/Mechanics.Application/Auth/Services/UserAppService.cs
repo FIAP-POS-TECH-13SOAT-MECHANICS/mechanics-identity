@@ -15,7 +15,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mechanics.Application.Auth.Services;
 
-public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublisher, IMapper mapper, IEmailService emailService) : IAppService
+public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublisher, IMapper mapper, IEmailService emailService)
+    : IAppService
 {
     public async Task<CreateItemResponse> Create(CreateUserRequest request, CancellationToken cancellationToken)
     {
@@ -82,12 +83,15 @@ public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublish
         return new UpdateItemResponse { UpdatedItemId = id };
     }
 
-    public async Task<CreateItemResponse> Create(CreateUserForCustomerRequest request, CancellationToken cancellationToken)
+    public async Task<CreateItemResponse?> Create(CreateUserForCustomerRequest request, CancellationToken cancellationToken)
     {
         var entity = mapper.Map<User>(request);
 
         entity.Normalize();
         Validator.ValidateAndThrow(entity);
+
+        if (dbContext.Users.Any(user => user.CpfNumber == entity.CpfNumber))
+            return null;
 
         entity.PasswordHash = new PasswordHasher<User>().HashPassword(entity, Guid.NewGuid().ToString());
         entity.SecurityStamp = Guid.NewGuid().ToString();
