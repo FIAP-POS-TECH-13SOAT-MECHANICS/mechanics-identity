@@ -149,7 +149,7 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
                         "03-08d5-48d3-81d9-a9ee26c0bdad\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 6
-    await testRunner.ThenAsync("um usuário é criado com role \"Customer\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("um usuário é criado com role \"CUSTOMER\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 7
     await testRunner.AndAsync("o customerId fica associado ao usuário", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");

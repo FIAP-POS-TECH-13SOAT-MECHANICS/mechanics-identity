@@ -3,7 +3,7 @@
 Scenario: Criar usuário quando cliente é criado
     Given que não existe usuário com o CPF "987.654.321-00"
     When o evento CustomerCreated é recebido com CPF "987.654.321-00" e customerId "37b52003-08d5-48d3-81d9-a9ee26c0bdad"
-    Then um usuário é criado com role "Customer"
+    Then um usuário é criado com role "CUSTOMER"
     And o customerId fica associado ao usuário
     And um e-mail de criação de senha é disparado
 

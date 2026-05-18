@@ -23,6 +23,12 @@ public class UserManagementSteps(ScenarioContext ctx)
 
     private readonly UserManagementDriver _driver = new();
 
+    [BeforeScenario]
+    public void ResetEventPublisherMock()
+    {
+        ApiHook.Factory.EventPublisherMock.Invocations.Clear();
+    }
+
     [Given(@"que não existe usuário com o CPF ""(.*)""")]
     public async Task GivenQueNaoExisteUsuarioComOCpf(string cpf)
     {

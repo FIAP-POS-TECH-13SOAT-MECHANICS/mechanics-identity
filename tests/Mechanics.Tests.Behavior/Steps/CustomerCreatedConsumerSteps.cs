@@ -17,7 +17,7 @@ public class CustomerCreatedConsumerSteps(ScenarioContext ctx)
     [When(@"o evento CustomerCreated é recebido com CPF ""(.*)"" e customerId ""(.*)""")]
     public async Task WhenOEventoCustomerCreatedERecebidoComCpfECustomerId(string cpf, string customerIdLabel)
     {
-        var customerId = Guid.NewGuid();
+        var customerId = new Guid(customerIdLabel);
         ctx["customerId"] = customerId;
         ctx["cpf"] = cpf;
 
@@ -67,8 +67,7 @@ public class CustomerCreatedConsumerSteps(ScenarioContext ctx)
 
         Assert.IsNotNull(user, "Usuário não foi criado.");
         Assert.IsNotNull(user.Role, "Role do usuário não foi carregada.");
-        Assert.IsTrue(
-            user.Role.Name == RoleNames.CustomerUser || user.Role.Name == RoleNames.CustomerAdmin,
+        Assert.StartsWith(roleLabel, user.Role.Name,
             $"Role esperada era Customer (CustomerUser ou CustomerAdmin), mas foi '{user.Role.Name}'.");
     }
 
