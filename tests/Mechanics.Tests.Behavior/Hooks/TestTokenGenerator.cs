@@ -34,4 +34,26 @@ public class TestTokenGenerator(RSA rsa)
 
         return _tokenHandler.CreateToken(tokenDescriptor);
     }
+
+    public string GenerateAccessTokenForUser(Guid userId, string roleName)
+    {
+        var claims = new List<Claim>
+        {
+            new("sub", userId.ToString()),
+            new("customerId", Guid.Empty.ToString()),
+            new("role", roleName),
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Issuer = "fiap-mechanics",
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(10),
+            SigningCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256),
+            IssuedAt = DateTime.UtcNow,
+            NotBefore = DateTime.UtcNow,
+        };
+
+        return _tokenHandler.CreateToken(tokenDescriptor);
+    }
 }

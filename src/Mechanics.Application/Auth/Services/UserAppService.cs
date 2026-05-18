@@ -95,6 +95,9 @@ public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublish
         await dbContext.Users.AddAsync(entity, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        var message = new UserChangedEvent(entity);
+        await eventPublisher.PublishAsync(message, cancellationToken);
+
         var passwordCreationCode = entity.GetPasswordCreationCode();
         await emailService.SendCustomerUserPasswordCreationCode(entity, passwordCreationCode, cancellationToken);
 

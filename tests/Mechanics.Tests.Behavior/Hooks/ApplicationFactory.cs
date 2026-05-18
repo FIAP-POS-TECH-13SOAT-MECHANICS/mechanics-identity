@@ -17,10 +17,20 @@ public class ApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly RSA _rsa = RSA.Create();
 
+    public Mock<IEventPublisher> EventPublisherMock { get; } = new();
+
     public HttpClient GetAuthenticatedClient(string roleName)
     {
         var client = CreateClient();
         var token = new TestTokenGenerator(_rsa).GenerateAccessTokenByRoleName(roleName);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
+    public HttpClient GetAuthenticatedClientForUser(Guid userId, string roleName)
+    {
+        var client = CreateClient();
+        var token = new TestTokenGenerator(_rsa).GenerateAccessTokenForUser(userId, roleName);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
@@ -36,11 +46,10 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.UseInMemoryDbContext("mechanics-behavior")
-                .UseMockedMessaging()
+                .UseMockedMessaging(EventPublisherMock)
                 .UseMockedEmailSender();
         });
 
-        Environment.SetEnvironmentVariable("AppInfo__RoutePrefix", "api");
         Environment.SetEnvironmentVariable("Datadog__OtlpEndpoint", "http://localhost");
 
         base.ConfigureWebHost(builder);
@@ -60,7 +69,7 @@ internal static class Extensions
         return services;
     }
 
-    public static IServiceCollection UseMockedMessaging(this IServiceCollection services)
+    public static IServiceCollection UseMockedMessaging(this IServiceCollection services, Mock<IEventPublisher> eventPublisherMock)
     {
         var descriptor = services.SingleOrDefault(service => service.ServiceType == typeof(IAmazonSQS));
         if (descriptor is not null)
@@ -68,7 +77,7 @@ internal static class Extensions
         services.AddSingleton(new Mock<IAmazonSQS>().Object);
 
         var consumerServices = services
-            .Where(s => s.ImplementationType?.Name.Contains("ConsumerBackgroundService") == true)
+            .Where(s => s.ImplementationType is not null && s.ImplementationType.Name.Contains("ConsumerBackgroundService"))
             .ToList();
         foreach (var service in consumerServices)
             services.Remove(service);
@@ -76,7 +85,7 @@ internal static class Extensions
         var publisherDescriptor = services.SingleOrDefault(s => s.ServiceType == typeof(IEventPublisher));
         if (publisherDescriptor is not null)
             services.Remove(publisherDescriptor);
-        services.AddSingleton(new Mock<IEventPublisher>().Object);
+        services.AddSingleton(eventPublisherMock.Object);
 
         return services;
     }
