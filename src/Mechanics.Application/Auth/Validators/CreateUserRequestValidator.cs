@@ -19,13 +19,17 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Must(cpf => DocumentValidations.ValidateCpf(new string(cpf.Where(char.IsDigit).ToArray())));
 
         RuleFor(request => request.CpfNumber)
-            .MustAsync((cpf, cancellationToken) => dbContext.Users.AllAsync(u => u.CpfNumber != cpf, cancellationToken));
-
-        RuleFor(request => request.Email).NotEmpty().EmailAddress()
             .MustAsync(async (cpf, cancellationToken) =>
             {
-                var normalizedCpf = new string(cpf.Where(char.IsDigit).ToArray());
-                return !await dbContext.Users.AnyAsync(u => u.CpfNumber == normalizedCpf, cancellationToken);
+                var normalized = new string(cpf.Where(char.IsDigit).ToArray());
+                return !await dbContext.Users.AnyAsync(u => u.CpfNumber == normalized, cancellationToken);
+            });
+
+        RuleFor(request => request.Email).NotEmpty().EmailAddress()
+            .MustAsync(async (email, cancellationToken) =>
+            {
+                var normalized = email.ToLowerInvariant();
+                return !await dbContext.Users.AnyAsync(u => u.Email == normalized, cancellationToken);
             });
     }
 }
