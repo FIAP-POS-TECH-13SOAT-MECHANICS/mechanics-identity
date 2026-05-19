@@ -1,7 +1,6 @@
-using Mechanics.Application.Auth.Event;
+using Mechanics.Application.Auth.Events;
 using Mechanics.Infra.Data;
 using Mechanics.Infra.Integrations.EmailSender;
-using Mechanics.Infra.Security.Models;
 using Mechanics.Tests.Behavior.Drivers;
 using Mechanics.Tests.Behavior.Hooks;
 using Microsoft.EntityFrameworkCore;

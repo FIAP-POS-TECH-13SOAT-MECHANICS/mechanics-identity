@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Mechanics.Application.Auth.Consumers;
-using Mechanics.Application.Auth.Event;
 using Mechanics.Application.Auth.Events;
 using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;

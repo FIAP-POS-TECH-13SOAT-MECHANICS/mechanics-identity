@@ -1,4 +1,4 @@
-﻿namespace Mechanics.Application.Auth.Event;
+﻿namespace Mechanics.Application.Auth.Events;
 
 public class CustomerCreatedEvent
 {

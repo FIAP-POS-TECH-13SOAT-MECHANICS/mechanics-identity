@@ -1,4 +1,4 @@
-﻿using Mechanics.Application.Auth.Event;
+﻿using Mechanics.Application.Auth.Events;
 using Mechanics.Infra.Data.Seeds;
 using Mechanics.Infra.Security.Models;
 using System.ComponentModel.DataAnnotations;
