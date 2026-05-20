@@ -100,7 +100,7 @@ public class UserManagementSteps(ScenarioContext ctx)
     }
 
     [When(@"eu envio uma requisição de criação com nome ""(.*)"", CPF ""(.*)"", email ""(.*)"" e role ""(.*)""")]
-    public async Task WhenEuEnvioUmaRequisicaoDeCreacao(string nome, string cpf, string email, Guid roleId)
+    public async Task WhenEuEnvioUmaRequisicaoDeCriacaoComNomeCpfEmailERole(string nome, string cpf, string email, Guid roleId)
     {
         var request = new CreateUserRequest
         {
@@ -114,7 +114,7 @@ public class UserManagementSteps(ScenarioContext ctx)
     }
 
     [When("eu envio uma requisição de criação com o mesmo CPF")]
-    public async Task WhenEuEnvioUmaRequisicaoDeCreacaoComOMesmoCpf()
+    public async Task WhenEuEnvioUmaRequisicaoDeCriacaoComOMesmoCpf()
     {
         var cpf = (string)ctx["cpf"];
         var request = new CreateUserRequest
@@ -159,7 +159,7 @@ public class UserManagementSteps(ScenarioContext ctx)
     }
 
     [Then("a resposta é 400 BadRequest")]
-    public async Task ThenARespostaE400BadRequest()
+    public async Task ThenARespostaEBadRequest()
     {
         var response = (HttpResponseMessage)ctx["response"];
         if (response.StatusCode != HttpStatusCode.BadRequest)
@@ -190,7 +190,7 @@ public class UserManagementSteps(ScenarioContext ctx)
     }
 
     [Then("um evento UserChanged é publicado na fila")]
-    public void ThenUmEventoUserChangedEPublicadoNaFila()
+    public static void ThenUmEventoUserChangedEPublicadoNaFila()
     {
         ApiHook.Factory.EventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserChangedEvent>(), It.IsAny<CancellationToken>()),
@@ -198,7 +198,7 @@ public class UserManagementSteps(ScenarioContext ctx)
     }
 
     [Given("existe uma role com o nome {string} e id {string}")]
-    public async Task GivenExisteUmaRoleComONomeEId(string roleName, Guid roleId)
+    public static async Task GivenExisteUmaRoleComONomeStringEIdString(string roleName, Guid roleId)
     {
         using var scope = ApiHook.Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

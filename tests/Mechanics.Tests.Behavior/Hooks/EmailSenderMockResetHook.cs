@@ -6,7 +6,7 @@ namespace Mechanics.Tests.Behavior.Hooks;
 public class EmailSenderMockResetHook
 {
     [BeforeScenario]
-    public void ResetEmailSenderMock()
+    public static void ResetEmailSenderMock()
     {
         ApiHook.Factory.EmailSenderMock.Invocations.Clear();
     }

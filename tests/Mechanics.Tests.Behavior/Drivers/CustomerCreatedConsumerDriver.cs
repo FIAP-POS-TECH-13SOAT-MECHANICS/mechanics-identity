@@ -1,5 +1,4 @@
-using Mechanics.Application.Auth.Consumers;
-using Mechanics.Application.Auth.Event;
+using Mechanics.Application.Auth.Events;
 using Mechanics.Domain.Auth;
 using Mechanics.Infra.Data;
 using Mechanics.Infra.Data.Seeds;

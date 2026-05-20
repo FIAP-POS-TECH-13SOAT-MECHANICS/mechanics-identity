@@ -1,4 +1,4 @@
-﻿using Mechanics.Application.Auth.Event;
+﻿using Mechanics.Application.Auth.Events;
 using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;
 using Mechanics.Infra.Messaging.Consumers;

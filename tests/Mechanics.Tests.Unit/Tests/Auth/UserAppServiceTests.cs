@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Mechanics.Application.Auth.Consumers;
-using Mechanics.Application.Auth.Event;
 using Mechanics.Application.Auth.Events;
 using Mechanics.Application.Auth.Requests;
 using Mechanics.Application.Auth.Services;
@@ -168,6 +167,7 @@ public class UserAppServiceTests
         Assert.AreEqual(userId, response.Id);
         Assert.AreEqual(user.FullName, response.FullName);
         Assert.AreEqual(user.CpfNumber, response.CpfNumber);
+        Assert.AreEqual(user.Email, response.Email);
         Assert.IsNotNull(response.Role);
         Assert.AreEqual(RoleNames.Mechanic, response.Role.Name);
     }

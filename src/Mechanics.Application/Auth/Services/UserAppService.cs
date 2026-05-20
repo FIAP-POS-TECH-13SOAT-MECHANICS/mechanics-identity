@@ -47,6 +47,28 @@ public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublish
         return user is null ? null : mapper.Map<GetUserResponse>(user);
     }
 
+    public async Task<CreateItemResponse?> Create(CreateUserForCustomerRequest request, CancellationToken cancellationToken)
+    {
+        var entity = mapper.Map<User>(request);
+
+        entity.Normalize();
+        Validator.ValidateAndThrow(entity);
+
+        if (await dbContext.Users.AnyAsync(user => user.CpfNumber == entity.CpfNumber, cancellationToken: cancellationToken))
+            return null;
+
+        entity.PasswordHash = new PasswordHasher<User>().HashPassword(entity, Guid.NewGuid().ToString());
+        entity.SecurityStamp = Guid.NewGuid().ToString();
+
+        await dbContext.Users.AddAsync(entity, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var passwordCreationCode = entity.GetPasswordCreationCode();
+        await emailService.SendCustomerUserPasswordCreationCode(entity, passwordCreationCode, cancellationToken);
+
+        return new CreateItemResponse { CreatedId = entity.Id };
+    }
+
     public async Task<GetUsersResponse> GetList(GetUsersRequest request, CancellationToken cancellationToken)
     {
         var normalizedName = request.Name.Trim().ToUpper();
@@ -81,31 +103,6 @@ public class UserAppService(AppDbContext dbContext, IEventPublisher eventPublish
         await eventPublisher.PublishAsync(message, cancellationToken);
 
         return new UpdateItemResponse { UpdatedItemId = id };
-    }
-
-    public async Task<CreateItemResponse?> Create(CreateUserForCustomerRequest request, CancellationToken cancellationToken)
-    {
-        var entity = mapper.Map<User>(request);
-
-        entity.Normalize();
-        Validator.ValidateAndThrow(entity);
-
-        if (dbContext.Users.Any(user => user.CpfNumber == entity.CpfNumber))
-            return null;
-
-        entity.PasswordHash = new PasswordHasher<User>().HashPassword(entity, Guid.NewGuid().ToString());
-        entity.SecurityStamp = Guid.NewGuid().ToString();
-
-        await dbContext.Users.AddAsync(entity, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        var message = new UserChangedEvent(entity);
-        await eventPublisher.PublishAsync(message, cancellationToken);
-
-        var passwordCreationCode = entity.GetPasswordCreationCode();
-        await emailService.SendCustomerUserPasswordCreationCode(entity, passwordCreationCode, cancellationToken);
-
-        return new CreateItemResponse { CreatedId = entity.Id };
     }
 
     public async Task<GetUsersResponse> GetListByCustomerId(Guid customerId, GetUsersRequest request,
