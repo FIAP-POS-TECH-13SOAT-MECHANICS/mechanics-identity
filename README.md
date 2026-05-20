@@ -1,6 +1,7 @@
 # Identity
 
 Gestão de usuários e permissões.
+[![Quality Gate Status](http://34.231.107.126/api/project_badges/measure?project=fiap-mechanics-identity&metric=alert_status&token=sqb_93b2812752c9f7b6e4ae6c06f3ff4d8987f58812)](http://34.231.107.126/dashboard?id=fiap-mechanics-identity)
 
 ## Definição do ambiente
 
@@ -106,3 +107,21 @@ Ao completar o PR, os testes são novamente executados e é feito o deploy no am
 | `main`    | Production  |
 | `release` | Staging     |
 | `develop` | Development |
+
+### SonarQube no CI
+
+Este repositório usa workflow reutilizável do `mechanics-infra` para testes e análise SonarQube.
+
+Configurações necessárias em `Settings > Secrets and variables > Actions`:
+
+- Secret `SONAR_HOST_URL`
+- Secret `SONAR_TOKEN`
+- Variable `SONAR_PROJECT_KEY` (valor: `fiap-mechanics-identity`)
+
+A análise é habilitada em:
+
+- `pull_request` com destino em `main`;
+- `workflow_dispatch` quando executado na branch `main`.
+
+O SonarQube faz o coverage da camada de domínio e aplicação. Para isso, o workflow executa os testes com cobertura e publica os resultados usando o SonarScanner.
+
