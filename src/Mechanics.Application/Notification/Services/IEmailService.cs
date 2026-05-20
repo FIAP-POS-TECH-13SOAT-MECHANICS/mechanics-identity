@@ -7,6 +7,6 @@ public interface IEmailService
     Task SendUserPasswordCreationCode(User user, string passwordCreationCode, CancellationToken cancellationToken = default);
     Task UserPasswordChanged(User user, CancellationToken cancellationToken = default);
 
-    Task SendCustomerUserPasswordCreationCode(User entity, string passwordCreationCode,
+    Task SendCustomerUserPasswordCreationCode(User user, string passwordCreationCode,
         CancellationToken cancellationToken = default);
 }

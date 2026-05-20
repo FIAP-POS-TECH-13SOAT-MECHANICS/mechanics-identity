@@ -87,7 +87,7 @@ public class CustomerCreatedConsumerSteps(ScenarioContext ctx)
     }
 
     [Then("um e-mail de criação de senha é disparado")]
-    public void ThenUmEmailDeCriacaoDeSenhaEDisparado()
+    public static void ThenUmEmailDeCriacaoDeSenhaEDisparado()
     {
         ApiHook.Factory.EmailSenderMock.Verify(
             x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()),
@@ -109,7 +109,7 @@ public class CustomerCreatedConsumerSteps(ScenarioContext ctx)
     }
 
     [Then("nenhum e-mail é disparado")]
-    public void ThenNenhumEmailEDisparado()
+    public static void ThenNenhumEmailEDisparado()
     {
         ApiHook.Factory.EmailSenderMock.Verify(
             x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()),
